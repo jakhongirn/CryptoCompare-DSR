@@ -10,7 +10,7 @@ class CryptoTracker extends Component {
     this.state = {
       trackedCryptos: ['doge'],
       cryptoData: {},
-      trend: null
+      rateChanges: {},
     };
   }
 
@@ -25,7 +25,7 @@ class CryptoTracker extends Component {
   }
 
   updateRates = () => {
-    const { trackedCryptos, cryptoData: prevCryptoData } = this.state;
+    const { trackedCryptos, cryptoData: prevCryptoData, rateChanges } = this.state;
     trackedCryptos.forEach((crypto) => {
       axios
         .get(`https://min-api.cryptocompare.com/data/price?fsym=${crypto.toUpperCase()}&tsyms=USD&api_key=${API_KEY}`)
@@ -36,17 +36,19 @@ class CryptoTracker extends Component {
               ...prevCryptoData,
               [crypto]: newData.USD,
             };
-  
-            const rateChange =
-              (updatedCryptoData[crypto] || 0) > (prevCryptoData[crypto] || 0)
-                ? <GoArrowUpRight />
+
+            const updatedRateChanges = {
+              ...rateChanges,
+              [crypto]: (updatedCryptoData[crypto] || 0) > (prevCryptoData[crypto] || 0)
+                ? <GoArrowUpRight className='text-green-500' />
                 : (updatedCryptoData[crypto] || 0) < (prevCryptoData[crypto] || 0)
-                ? <GoArrowDownRight />
-                : <GoArrowRight />
-  
+                ? <GoArrowDownRight className='text-red-500' />
+                : <GoArrowRight className='text-gray-300'/>,
+            };
+
             this.setState({
               cryptoData: updatedCryptoData,
-              rateChange,
+              rateChanges: updatedRateChanges,
             });
           }
         })
@@ -95,34 +97,32 @@ class CryptoTracker extends Component {
 
 
   render() {
-    const { trackedCryptos, cryptoData, rateChange } = this.state;
+    const { trackedCryptos, cryptoData, rateChanges } = this.state;
 
     const cryptoList = trackedCryptos.map((crypto) => {
       const rate = cryptoData[crypto] || 0;
-      const prevRate = cryptoData[crypto] || 0;
-
-     
 
       return (
-        <li className='w-1/2 flex' key={crypto}>
-          <div className='w-full bg-violet-500 flex justify-between p-2 rounded-l-lg'>
+        <li className='w-1/2 flex ' key={crypto}>
+          <div className='w-full bg-sky-700 flex justify-between p-3 rounded-l-lg'>
             <p>{crypto.toUpperCase()}: </p>
-            <p>${rate} {rateChange}</p>
+            <p className='flex items-center gap-x-2'>${rate} <span className='text-3xl '>{rateChanges[crypto]}</span></p>
+            
           </div>
-          <button className='w-24 rounded-r-lg bg-red-500 text-white' onClick={() => this.deleteCrypto(crypto)}>Delete</button>
+          <button className='w-24 px-4 py-3 rounded-r-lg bg-red-500 ' onClick={() => this.deleteCrypto(crypto)}>Delete</button>
         </li>
       );
     });
 
     return (
-        <div className='mt-10'>
-          <h1 className='text-center text-3xl font-semibold mb-6'>CryptoCompare</h1>
+        <div className='mt-10 text-2xl'>
+          <h1 className='text-center text-4xl font-semibold mb-6'>CryptoCompare</h1>
           
             
-              <div className='flex justify-center'>
+              <div className='flex justify-center '>
               <div className='w-1/2 flex'>
                 <input className='w-full border-2 rounded-l-lg border-blue-500 p-2' type="text" ref="cryptoInput" placeholder="Enter cryptocurrency name" />
-                <button className='w-24 rounded-r-lg  bg-teal-500 text-white' onClick={this.searchCrypto}>Search</button>
+                <button className='w-24 rounded-r-lg p-3 bg-teal-500 text-white' onClick={this.searchCrypto}>Search</button>
               </div>
               </div>
           
